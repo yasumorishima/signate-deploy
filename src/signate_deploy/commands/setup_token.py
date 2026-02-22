@@ -41,21 +41,17 @@ def _find_signate_exe() -> str | None:
     return None
 
 
-def _run_signate_token(email: str, password: str) -> bool:
-    """signate token コマンドを実行してトークンを取得する."""
+def _run_signate_token(email: str) -> bool:
+    """signate token コマンドをインタラクティブに実行してトークンを取得する."""
     signate_exe = _find_signate_exe()
     if signate_exe is None:
         click.echo("Error: signate CLIが見つかりません。pip install signate を実行してください。", err=True)
         return False
 
-    result = subprocess.run(
-        [signate_exe, "token", f"--email={email}", f"--password={password}"],
-        capture_output=True,
-        text=True,
-    )
+    # パスワードはsignate CLIが対話的に入力を求める
+    result = subprocess.run([signate_exe, "token", "--email", email])
     if result.returncode != 0:
         click.echo("Error: SIGNATEトークンの取得に失敗しました。", err=True)
-        click.echo(result.stderr or result.stdout, err=True)
         return False
     return True
 
@@ -89,16 +85,16 @@ def _set_github_secret(secret_value: str) -> bool:
 
 @click.command("setup-token")
 @click.option("--email", required=True, prompt="SIGNATE email", help="SIGNATEのメールアドレス")
-@click.option("--password", required=True, prompt="SIGNATE password", hide_input=True, help="SIGNATEのパスワード")
 @click.option("--set-secret", is_flag=True, default=False, help="GitHub Secretsに自動設定する")
-def setup_token(email, password, set_secret):
+def setup_token(email, set_secret):
     """SIGNATEトークンを取得してBase64エンコードする.
 
+    signate CLIがパスワードを対話的に入力を求めます。
     --set-secret を付けるとGitHub Secretsにも自動設定します。
 
     例:
-      signate-deploy setup-token --email=your@email.com --password=your-password
-      signate-deploy setup-token --email=your@email.com --password=your-password --set-secret
+      signate-deploy setup-token --email=your@email.com
+      signate-deploy setup-token --email=your@email.com --set-secret
     """
     # signate パッケージの確認
     try:
@@ -108,9 +104,9 @@ def setup_token(email, password, set_secret):
         click.echo("  pip install signate", err=True)
         raise SystemExit(1)
 
-    # トークン取得
+    # トークン取得（パスワードはsignate CLIが対話的に入力を求める）
     click.echo("SIGNATEトークンを取得中...")
-    if not _run_signate_token(email, password):
+    if not _run_signate_token(email):
         raise SystemExit(1)
     click.echo("  トークン取得成功")
 
@@ -135,4 +131,4 @@ def setup_token(email, password, set_secret):
         click.echo(f"  gh secret set SIGNATE_TOKEN_B64 --body '{token_b64}'")
         click.echo("")
         click.echo("または --set-secret オプションで自動設定:")
-        click.echo(f"  signate-deploy setup-token --email={email} --password=*** --set-secret")
+        click.echo(f"  signate-deploy setup-token --email={email} --set-secret")

@@ -19,17 +19,12 @@ def _make_token_file(tmp_path):
 
 
 def test_setup_token_success(tmp_path, monkeypatch):
-    monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     _make_token_file(tmp_path)
 
     with patch("signate_deploy.commands.setup_token._run_signate_token", return_value=True):
         runner = CliRunner()
-        result = runner.invoke(main, [
-            "setup-token",
-            "--email=test@example.com",
-            "--password=pass",
-        ])
+        result = runner.invoke(main, ["setup-token", "--email=test@example.com"])
 
     assert result.exit_code == 0
     assert "Base64" in result.output
@@ -42,12 +37,7 @@ def test_setup_token_with_set_secret(tmp_path, monkeypatch):
     with patch("signate_deploy.commands.setup_token._run_signate_token", return_value=True), \
          patch("signate_deploy.commands.setup_token._set_github_secret", return_value=True):
         runner = CliRunner()
-        result = runner.invoke(main, [
-            "setup-token",
-            "--email=test@example.com",
-            "--password=pass",
-            "--set-secret",
-        ])
+        result = runner.invoke(main, ["setup-token", "--email=test@example.com", "--set-secret"])
 
     assert result.exit_code == 0
     assert "SIGNATE_TOKEN_B64" in result.output
@@ -58,11 +48,7 @@ def test_setup_token_fails_if_signate_token_fails(tmp_path, monkeypatch):
 
     with patch("signate_deploy.commands.setup_token._run_signate_token", return_value=False):
         runner = CliRunner()
-        result = runner.invoke(main, [
-            "setup-token",
-            "--email=test@example.com",
-            "--password=pass",
-        ])
+        result = runner.invoke(main, ["setup-token", "--email=test@example.com"])
 
     assert result.exit_code != 0
 
@@ -72,10 +58,6 @@ def test_setup_token_fails_if_no_token_file(tmp_path, monkeypatch):
 
     with patch("signate_deploy.commands.setup_token._run_signate_token", return_value=True):
         runner = CliRunner()
-        result = runner.invoke(main, [
-            "setup-token",
-            "--email=test@example.com",
-            "--password=pass",
-        ])
+        result = runner.invoke(main, ["setup-token", "--email=test@example.com"])
 
     assert result.exit_code != 0
