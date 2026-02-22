@@ -5,14 +5,18 @@ A CLI tool to automate SIGNATE competition workflows via GitHub Actions.
 `git push` → GitHub Actions → Download data → Train → Submit to SIGNATE
 
 ```
-signate-deploy init-repo          # Set up GitHub Actions workflows
+signate-deploy init-repo              # Set up GitHub Actions workflows
+signate-deploy setup-token            # Get SIGNATE token & set GitHub Secret
+signate-deploy competition-list       # List available competitions
+signate-deploy task-list <comp_key>   # Get task_key from competition
+signate-deploy file-list <task_key>   # Get file_keys from task
 signate-deploy init my-comp \
   --task-key <task_key> \
   --file-key train:<key> \
-  --file-key test:<key>            # Create competition directory
+  --file-key test:<key>               # Create competition directory
 signate-deploy submit my-comp \
-  --memo "Baseline v1"             # Trigger train & submit
-signate-deploy download my-comp   # Trigger data download only
+  --memo "Baseline v1"               # Trigger train & submit
+signate-deploy download my-comp      # Trigger data download only
 ```
 
 ## Installation
@@ -63,13 +67,17 @@ This command will:
 ### 4. Get task_key and file_keys
 
 ```bash
-signate file-list --task_key <task_key>
+# Find your competition_key from the competition URL:
+# https://user.competition.signate.jp/.../detail/?competition=THIS_IS_COMPETITION_KEY
+
+# Get task_key from competition_key
+python -m signate_deploy task-list <competition_key>
+
+# Get file_keys from task_key
+python -m signate_deploy file-list <task_key>
 ```
 
-`task_key` is in the competition URL:
-```
-https://user.competition.signate.jp/.../detail/?...&task=THIS_IS_TASK_KEY
-```
+> You can also browse available competitions with `python -m signate_deploy competition-list`.
 
 ### 5. Create competition directory
 
