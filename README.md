@@ -21,34 +21,48 @@ signate-deploy download my-comp   # Trigger data download only
 pip install signate-deploy
 ```
 
+> **Prerequisites:** [GitHub CLI (`gh`)](https://cli.github.com/) must be installed and authenticated.
+
 ## Quick Start
 
-### 1. Set up GitHub Actions
+### 1. Install signate CLI
+
+```bash
+pip install signate
+```
+
+> The signate CLI is required to fetch your API token and get file keys.
+> It is a separate package from signate-deploy.
+
+### 2. Set up GitHub Actions
 
 In your GitHub repository root:
 
 ```bash
-signate-deploy init-repo
+python -m signate_deploy init-repo
 ```
 
 Creates:
 - `.github/workflows/signate-submit.yml` — full pipeline (download → train → submit)
 - `.github/workflows/signate-download.yml` — data download only
 
-### 2. Set up GitHub Secrets
+### 3. Set SIGNATE token as GitHub Secret
 
 ```bash
-# Generate SIGNATE token
-signate token --email=your@email.com --password=your-password
-
-# Set as GitHub Secret (Base64 encoded)
-cat ~/.signate/signate.json | base64 | gh secret set SIGNATE_TOKEN_B64
+python -m signate_deploy setup-token --email=your@email.com --set-secret
 ```
 
-### 3. Get task_key and file_keys
+This command will:
+1. Run `signate token` interactively (you will be prompted for your password)
+2. Base64-encode `~/.signate/signate.json`
+3. Set it as `SIGNATE_TOKEN_B64` in GitHub Secrets automatically
+
+> **Windows (cmd.exe):** Use `python -m signate_deploy` instead of `signate-deploy`
+> since the Scripts folder may not be on PATH.
+
+### 4. Get task_key and file_keys
 
 ```bash
-pip install signate
 signate file-list --task_key <task_key>
 ```
 
@@ -57,10 +71,10 @@ signate file-list --task_key <task_key>
 https://user.competition.signate.jp/.../detail/?...&task=THIS_IS_TASK_KEY
 ```
 
-### 4. Create competition directory
+### 5. Create competition directory
 
 ```bash
-signate-deploy init my-comp \
+python -m signate_deploy init my-comp \
   --task-key abc123def456 \
   --file-key train:5f0e1ebb35af4963 \
   --file-key test:72f23ebe8f004fa0 \
@@ -75,17 +89,17 @@ my-comp/
   requirements.txt      # pandas, numpy, scikit-learn, lightgbm
 ```
 
-### 5. Edit train.py and push
+### 6. Edit train.py and push
 
 ```bash
 # Edit my-comp/train.py (set TARGET column name, add preprocessing, etc.)
 git add my-comp/ && git commit -m "Add my-comp baseline" && git push
 ```
 
-### 6. Submit
+### 7. Submit
 
 ```bash
-signate-deploy submit my-comp --memo "Baseline v1"
+python -m signate_deploy submit my-comp --memo "Baseline v1"
 # → gh workflow run signate-submit.yml is triggered
 
 # Check progress
@@ -108,7 +122,7 @@ gh run view --log
 
 ## Notes
 
-- `⚠️ Never commit `data/` or `.signate/` — they are .gitignored by `init-repo`
+- ⚠️ Never commit `data/` or `.signate/` — they are .gitignored by `init-repo`
 - Requires [GitHub CLI (`gh`)](https://cli.github.com/) to be installed and authenticated
 - Works on any OS (Windows/Mac/Linux)
 
