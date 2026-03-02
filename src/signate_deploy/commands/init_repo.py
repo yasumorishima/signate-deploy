@@ -5,6 +5,59 @@ from pathlib import Path
 import click
 
 
+REFRESH_TOKEN_SCRIPT = """\
+\"\"\"SIGNATE APIトークンをメール/パスワードで自動取得してsignate.jsonに保存する.\"\"\"
+
+import os
+import sys
+from pathlib import Path
+
+import requests
+
+CLOUD_URL = "https://api.cloud.signate.jp/api"
+JWT_COOKIE_KEY = "cloud_user"
+CSRF_COOKIE_KEY = "_user_csrf_cloud"
+
+
+def refresh_token(email: str, password: str) -> None:
+    session = requests.Session()
+    session.headers.update({"User-Agent": "python-requests/2.x"})
+
+    # 1. CSRFトークン取得
+    session.get(f"{CLOUD_URL}/v1/token").raise_for_status()
+    csrf = next(c.value for c in session.cookies if c.name == CSRF_COOKIE_KEY)
+
+    # 2. サインイン
+    session.post(
+        f"{CLOUD_URL}/v1/sign_in",
+        headers={"Content-Type": "application/json", "X-CSRF-Token": csrf},
+        json={"email": email, "password": password, "individual": True},
+    ).raise_for_status()
+
+    # 3. 組織ログイン
+    session.post(
+        f"{CLOUD_URL}/v1/organizations/sign_in",
+        headers={"Content-Type": "application/json", "X-CSRF-Token": csrf},
+        json={"id": 1},
+    ).raise_for_status()
+
+    # 4. JWT取得・保存
+    jwt = next(c.value for c in session.cookies if c.name == JWT_COOKIE_KEY)
+    token_path = Path.home() / ".signate" / "signate.json"
+    token_path.parent.mkdir(parents=True, exist_ok=True)
+    token_path.write_text(jwt)
+    print("SIGNATE token refreshed successfully.")
+
+
+if __name__ == "__main__":
+    email = os.environ.get("SIGNATE_EMAIL")
+    password = os.environ.get("SIGNATE_PASSWORD")
+    if not email or not password:
+        print("Error: SIGNATE_EMAIL and SIGNATE_PASSWORD must be set.", file=sys.stderr)
+        sys.exit(1)
+    refresh_token(email, password)
+"""
+
 SUBMIT_WORKFLOW = """\
 name: SIGNATE Train & Submit
 
@@ -30,19 +83,20 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Setup SIGNATE token
-        run: |
-          mkdir -p ~/.signate
-          echo '${{ secrets.SIGNATE_TOKEN_B64 }}' | base64 -d > ~/.signate/signate.json
-
       - name: Install dependencies
         run: |
-          pip install signate
+          pip install signate requests
           if [ -f "${{ inputs.competition_dir }}/requirements.txt" ]; then
             pip install -r "${{ inputs.competition_dir }}/requirements.txt"
           else
             pip install pandas numpy scikit-learn lightgbm
           fi
+
+      - name: Refresh SIGNATE token
+        env:
+          SIGNATE_EMAIL: ${{ secrets.SIGNATE_EMAIL }}
+          SIGNATE_PASSWORD: ${{ secrets.SIGNATE_PASSWORD }}
+        run: python scripts/refresh_signate_token.py
 
       - name: Download data
         run: |
@@ -60,6 +114,8 @@ jobs:
           EOF
 
       - name: Train and predict
+        env:
+          WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
         run: python "${{ inputs.competition_dir }}/train.py"
 
       - name: Submit
@@ -104,13 +160,14 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Setup SIGNATE token
-        run: |
-          mkdir -p ~/.signate
-          echo '${{ secrets.SIGNATE_TOKEN_B64 }}' | base64 -d > ~/.signate/signate.json
-
       - name: Install signate
-        run: pip install signate
+        run: pip install signate requests
+
+      - name: Refresh SIGNATE token
+        env:
+          SIGNATE_EMAIL: ${{ secrets.SIGNATE_EMAIL }}
+          SIGNATE_PASSWORD: ${{ secrets.SIGNATE_PASSWORD }}
+        run: python scripts/refresh_signate_token.py
 
       - name: Download data
         run: |
@@ -161,6 +218,7 @@ def init_repo(force):
     カレントディレクトリに以下を生成します:
     - .github/workflows/signate-submit.yml
     - .github/workflows/signate-download.yml
+    - scripts/refresh_signate_token.py
     - .gitignore への追記
     """
     created = []
@@ -179,6 +237,17 @@ def init_repo(force):
             path.write_text(content)
             created.append(str(path))
             click.echo(f"  Created: {path}")
+
+    # refresh_signate_token.py
+    scripts_dir = Path("scripts")
+    scripts_dir.mkdir(exist_ok=True)
+    refresh_script_path = scripts_dir / "refresh_signate_token.py"
+    if refresh_script_path.exists() and not force:
+        click.echo(f"  Skip: {refresh_script_path} (既に存在。--force で上書き)")
+    else:
+        refresh_script_path.write_text(REFRESH_TOKEN_SCRIPT)
+        created.append(str(refresh_script_path))
+        click.echo(f"  Created: {refresh_script_path}")
 
     # .gitignore
     gitignore_path = Path(".gitignore")
@@ -206,7 +275,9 @@ def init_repo(force):
 
     click.echo("")
     click.echo("次のステップ:")
-    click.echo("  1. GitHub Secretsを設定:")
-    click.echo("     python -m signate_deploy setup-token --email=your@email.com --set-secret")
+    click.echo("  1. GitHub Secretsを設定（リポのディレクトリ内で実行）:")
+    click.echo("     gh secret set SIGNATE_EMAIL --body your@email.com")
+    click.echo("     gh secret set SIGNATE_PASSWORD  # プロンプトで入力")
+    click.echo("     gh secret set WANDB_API_KEY     # W&Bを使う場合")
     click.echo("  2. コンペ用ディレクトリを作成:")
     click.echo("     python -m signate_deploy init <competition-dir> --task-key <task_key>")

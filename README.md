@@ -49,17 +49,19 @@ python -m signate_deploy init-repo
 Creates:
 - `.github/workflows/signate-submit.yml` — full pipeline (download → train → submit)
 - `.github/workflows/signate-download.yml` — data download only
+- `scripts/refresh_signate_token.py` — auto token refresh script
 
-### 3. Set SIGNATE token as GitHub Secret
+### 3. Set SIGNATE credentials as GitHub Secrets
+
+Run **inside your repository directory**:
 
 ```bash
-python -m signate_deploy setup-token --email=your@email.com --set-secret
+gh secret set SIGNATE_EMAIL --body your@email.com
+gh secret set SIGNATE_PASSWORD   # prompted securely
+gh secret set WANDB_API_KEY      # if using W&B experiment tracking
 ```
 
-This command will:
-1. Run `signate token` interactively (you will be prompted for your password)
-2. Base64-encode `~/.signate/signate.json`
-3. Set it as `SIGNATE_TOKEN_B64` in GitHub Secrets automatically
+The generated `scripts/refresh_signate_token.py` is called at the start of every Actions run to obtain a fresh token automatically — no manual token refresh needed.
 
 > **Windows (cmd.exe):** Use `python -m signate_deploy` instead of `signate-deploy`
 > since the Scripts folder may not be on PATH.
