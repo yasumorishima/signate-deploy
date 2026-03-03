@@ -136,6 +136,12 @@ gh run view --log
 - Requires [GitHub CLI (`gh`)](https://cli.github.com/) to be installed and authenticated
 - Works on any OS (Windows/Mac/Linux)
 
+## Commands
+
+<!-- commands:start -->
+
+<!-- commands:end -->
+
 ## Links
 
 - [PyPI](https://pypi.org/project/signate-deploy/)
