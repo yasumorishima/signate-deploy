@@ -170,8 +170,8 @@ signate-deploy init [COMPETITION_DIR] [OPTIONS]
 
 | Option | Description |
 |---|---|
-| `--task-key` | SIGNATEのtask_key（コンペURLから取得） (default: `Sentinel.UNSET`) |
-| `--file-key` | ファイルキー（例: --file-key train:abc123 --file-key test:def456） (default: `Sentinel.UNSET`) |
+| `--task-key` | SIGNATEのtask_key（コンペURLから取得） |
+| `--file-key` | ファイルキー（例: --file-key train:abc123 --file-key test:def456） |
 
 ### `signate-deploy init-repo`
 
@@ -187,7 +187,7 @@ SIGNATEトークンを取得してBase64エンコードする.
 
 | Option | Description |
 |---|---|
-| `--email` | SIGNATEのメールアドレス (default: `Sentinel.UNSET`) |
+| `--email` | SIGNATEのメールアドレス |
 | `--set-secret` | GitHub Secretsに自動設定する |
 
 ### `signate-deploy submit`
