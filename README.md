@@ -140,6 +140,76 @@ gh run view --log
 
 <!-- commands:start -->
 
+### `signate-deploy competition-list`
+
+参加可能なコンペティション一覧を表示する.
+
+### `signate-deploy download`
+
+GitHub Actions経由でSIGNATEからデータをダウンロードする.
+
+```
+signate-deploy download [COMPETITION_DIR] [OPTIONS]
+```
+
+### `signate-deploy file-list`
+
+タスクのファイル一覧を表示する（file_keyを確認できる）.
+
+```
+signate-deploy file-list [TASK_KEY] [OPTIONS]
+```
+
+### `signate-deploy init`
+
+コンペ用ディレクトリを雛形から生成する.
+
+```
+signate-deploy init [COMPETITION_DIR] [OPTIONS]
+```
+
+| Option | Description |
+|---|---|
+| `--task-key` | SIGNATEのtask_key（コンペURLから取得） (default: `Sentinel.UNSET`) |
+| `--file-key` | ファイルキー（例: --file-key train:abc123 --file-key test:def456） (default: `Sentinel.UNSET`) |
+
+### `signate-deploy init-repo`
+
+リポジトリにGitHub Actionsワークフローと.gitignoreをセットアップする.
+
+| Option | Description |
+|---|---|
+| `--force`, `-f` | 既存ファイルを上書きする |
+
+### `signate-deploy setup-token`
+
+SIGNATEトークンを取得してBase64エンコードする.
+
+| Option | Description |
+|---|---|
+| `--email` | SIGNATEのメールアドレス (default: `Sentinel.UNSET`) |
+| `--set-secret` | GitHub Secretsに自動設定する |
+
+### `signate-deploy submit`
+
+GitHub Actions経由でSIGNATEに提出する.
+
+```
+signate-deploy submit [COMPETITION_DIR] [OPTIONS]
+```
+
+| Option | Description |
+|---|---|
+| `--memo`, `-m` | 提出メモ (default: `GitHub Actions submission`) |
+
+### `signate-deploy task-list`
+
+コンペティションのタスク一覧を表示する（task_keyを確認できる）.
+
+```
+signate-deploy task-list [COMPETITION_KEY] [OPTIONS]
+```
+
 <!-- commands:end -->
 
 ## Links
