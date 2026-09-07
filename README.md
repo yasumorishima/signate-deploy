@@ -149,7 +149,7 @@ gh run view --log
 GitHub Actions経由でSIGNATEからデータをダウンロードする.
 
 ```
-signate-deploy download [COMPETITION_DIR] [OPTIONS]
+signate-deploy download COMPETITION_DIR [OPTIONS]
 ```
 
 ### `signate-deploy file-list`
@@ -157,7 +157,7 @@ signate-deploy download [COMPETITION_DIR] [OPTIONS]
 タスクのファイル一覧を表示する（file_keyを確認できる）.
 
 ```
-signate-deploy file-list [TASK_KEY] [OPTIONS]
+signate-deploy file-list TASK_KEY [OPTIONS]
 ```
 
 ### `signate-deploy init`
@@ -165,7 +165,7 @@ signate-deploy file-list [TASK_KEY] [OPTIONS]
 コンペ用ディレクトリを雛形から生成する.
 
 ```
-signate-deploy init [COMPETITION_DIR] [OPTIONS]
+signate-deploy init COMPETITION_DIR [OPTIONS]
 ```
 
 | Option | Description |
@@ -195,7 +195,7 @@ SIGNATEトークンを取得してBase64エンコードする.
 GitHub Actions経由でSIGNATEに提出する.
 
 ```
-signate-deploy submit [COMPETITION_DIR] [OPTIONS]
+signate-deploy submit COMPETITION_DIR [OPTIONS]
 ```
 
 | Option | Description |
@@ -207,7 +207,7 @@ signate-deploy submit [COMPETITION_DIR] [OPTIONS]
 コンペティションのタスク一覧を表示する（task_keyを確認できる）.
 
 ```
-signate-deploy task-list [COMPETITION_KEY] [OPTIONS]
+signate-deploy task-list COMPETITION_KEY [OPTIONS]
 ```
 
 <!-- commands:end -->
