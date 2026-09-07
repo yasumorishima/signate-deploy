@@ -1,5 +1,7 @@
 """signate CLIの実行ファイルを探すユーティリティ."""
 
+from __future__ import annotations
+
 import shutil
 import site
 import sys
