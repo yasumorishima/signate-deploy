@@ -1,5 +1,7 @@
 """signate-deploy setup-token: SIGNATEトークンを取得してGitHub Secretsに設定する."""
 
+from __future__ import annotations
+
 import base64
 import json
 import subprocess
